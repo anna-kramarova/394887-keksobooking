@@ -1,7 +1,7 @@
 # Личный проект «Кексобукинг» [![Build status][travis-image]][travis-url]
 
 * Студент: [Анна Крамарова](https://up.htmlacademy.ru/javascript/11/user/394887).
-* Наставник: `Неизвестно`.
+* Наставник: [Вячеслав Ульянич](https://htmlacademy.ru/profile/id158443).
 
 ---
 
