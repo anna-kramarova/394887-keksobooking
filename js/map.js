@@ -1,11 +1,31 @@
 'use strict';
 
-// Массивы-константы
+// Константы
 var OFFER_TITLES = ['Большая уютная квартира', 'Маленькая неуютная квартира', 'Огромный прекрасный дворец', 'Маленький ужасный дворец', 'Красивый гостевой домик', 'Некрасивый негостеприимный домик', 'Уютное бунгало далеко от моря', 'Неуютное бунгало по колено в воде'];
 // var OFFER_TYPES = ['flat', 'house', 'bungalo'];
 var OFFER_CHECK = ['12:00', '13:00', '14:00'];
 var OFFER_FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
 var OFFERS_COUNT = 8;
+var RUBLES_SYMBOL = String.fromCharCode(8381);
+
+var PIN_SHIFT_X = 20;
+var PIN_SHIFT_Y = 40;
+
+var PIN_LOCATION_X_MIN = 300;
+var PIN_LOCATION_X_MAX = 900;
+
+var PIN_LOCATION_Y_MIN = 100;
+var PIN_LOCATION_Y_MAX = 500;
+
+var OFFER_PRICE_MIN = 1000;
+var OFFER_PRICE_MAX = 1000000;
+
+var OFFER_ROOMS_MIN = 1;
+var OFFER_ROOMS_MAX = 5;
+
+var OFFER_GUESTS_MIN = 1;
+var OFFER_GUESTS_MAX = 10;
+
 var OFFER_TYPE_TRANSLATION = {
   flat: 'Квартира',
   bungalo: 'Бунгало',
@@ -13,17 +33,16 @@ var OFFER_TYPE_TRANSLATION = {
 };
 
 // Общий блок карты
-var map = document.querySelector('.map');
+var mapElement = document.querySelector('.map');
 // Блок с метками
-var pinsMap = document.querySelector('.map__pins');
+var pinsMapElement = document.querySelector('.map__pins');
 // Шаблон метки
-var pinTemplate = document.querySelector('template').content.querySelector('.map__pin');
+var pinTemplateElement = document.querySelector('template').content.querySelector('.map__pin');
 // Шаблон предложения
-var offerTemplate = document.querySelector('template').content.querySelector('.map__card');
+var offerTemplateElement = document.querySelector('template').content.querySelector('.map__card');
 // Блок после блока с предложениями
-var afterOffersBlock = document.querySelector('.map__filters-container');
-// Знак валюты
-var rublesSymbol = String.fromCharCode(8381);
+var afterOffersElement = document.querySelector('.map__filters-container');
+
 
 // Функция поиска случайного числа
 var getRandomInt = function (min, max) {
@@ -42,7 +61,7 @@ var getUnicElementsArray = function (array, boolean) {
   var unicElementsArray = [];
   var unicElementsArrayLength = array.length;
 
-  if (boolean === true) {
+  if (boolean) {
     unicElementsArrayLength = getRandomInt(1, array.length);
   }
 
@@ -82,9 +101,8 @@ var getAllOffers = function () {
   for (var i = 0; i < OFFERS_COUNT; i++) {
 
     var arrayObject = {};
-    var randomLocationX = getRandomInt(300, 900);
-    var randomLocationY = getRandomInt(100, 500);
-    var photosArray = [];
+    var randomLocationX = getRandomInt(PIN_LOCATION_X_MIN, PIN_LOCATION_X_MAX);
+    var randomLocationY = getRandomInt(PIN_LOCATION_Y_MIN, PIN_LOCATION_Y_MAX);
 
     // Случайная картинка
     var randomAvatar = {
@@ -95,15 +113,15 @@ var getAllOffers = function () {
     var randomOffer = {
       title: randomTitles[i],
       address: randomLocationX + ', ' + randomLocationY,
-      price: getRandomInt(1000, 1000000),
+      price: getRandomInt(OFFER_PRICE_MIN, OFFER_PRICE_MAX),
       type: getOfferType(randomTitles[i]), // getRandomFeature(OFFER_TYPES),
-      rooms: getRandomInt(1, 5),
-      guests: getRandomInt(1, 10),
+      rooms: getRandomInt(OFFER_ROOMS_MIN, OFFER_ROOMS_MAX),
+      guests: getRandomInt(OFFER_GUESTS_MIN, OFFER_GUESTS_MAX),
       checkin: getRandomFeature(OFFER_CHECK),
       checkout: getRandomFeature(OFFER_CHECK),
       features: getUnicElementsArray(OFFER_FEATURES, true),
       description: '',
-      photos: photosArray
+      photos: []
     };
 
     // Случайные координаты
@@ -126,29 +144,24 @@ var getAllOffers = function () {
 // Массив случайных предложений
 var allOffers = getAllOffers();
 
-// Отображение блока
-document.querySelector('.map').classList.remove('map--faded');
-
 // Функция создания отдельного элемента метки
 var renderPin = function (offer) {
-  var pinElement = pinTemplate.cloneNode(true);
+  var pinElement = pinTemplateElement.cloneNode(true);
 
-  pinElement.style = 'left: ' + (offer.location.x - 40) + 'px; top: ' + (offer.location.y - 20) + 'px;';
+  pinElement.style = 'left: ' + (offer.location.x - PIN_SHIFT_X) + 'px; top: ' + (offer.location.y - PIN_SHIFT_Y) + 'px;';
   pinElement.querySelector('img').src = offer.author.avatar;
 
   return pinElement;
 };
 
-// Функция создания, записи элементов и вставки фрагмента
+// Функция создания, записи элементов меток и вставки фрагмента
 var renderPins = function () {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < allOffers.length; i++) {
     fragment.appendChild(renderPin(allOffers[i]));
   }
-  pinsMap.appendChild(fragment);
+  pinsMapElement.appendChild(fragment);
 };
-
-renderPins();
 
 // Функция создания списка удобств
 var getFeaturesList = function (featuresArray) {
@@ -159,7 +172,8 @@ var getFeaturesList = function (featuresArray) {
   for (var i = 0; i < featuresArray.length; i++) {
     featuresListElementClass = 'features features--' + featuresArray[i];
 
-    featuresListElement = document.createElement('li', {className: featuresListElementClass});
+    featuresListElement = document.createElement('li');
+    featuresListElement.className = featuresListElementClass;
 
     fragment.appendChild(featuresListElement);
   }
@@ -168,11 +182,11 @@ var getFeaturesList = function (featuresArray) {
 
 // Функция создания отдельного элемента предложения
 var renderOffer = function (arrayObject) {
-  var offerElement = offerTemplate.cloneNode(true);
+  var offerElement = offerTemplateElement.cloneNode(true);
 
   offerElement.querySelector('h3').textContent = arrayObject.offer.title;
   offerElement.querySelector('small').textContent = arrayObject.offer.address;
-  offerElement.querySelector('.popup__price').textContent = arrayObject.offer.price + rublesSymbol + '/ночь';
+  offerElement.querySelector('.popup__price').textContent = arrayObject.offer.price + RUBLES_SYMBOL + '/ночь';
   offerElement.querySelector('h4').textContent = OFFER_TYPE_TRANSLATION[arrayObject.offer.type];
   offerElement.querySelector('p:nth-child(7)').textContent = arrayObject.offer.rooms + ' комнаты для ' + arrayObject.offer.guests + ' гостей';
   offerElement.querySelector('p:nth-child(8)').textContent = 'Заезд после ' + arrayObject.offer.checkin + ', выезд до ' + arrayObject.offer.checkout;
@@ -184,14 +198,13 @@ var renderOffer = function (arrayObject) {
   return offerElement;
 };
 
-// Функция создания, записи элементов и вставки фрагмента
-var renderOffers = function () {
-  var fragment = document.createDocumentFragment();
-  for (var i = 0; i < 1; i++) {
-    fragment.appendChild(renderOffer(allOffers[i]));
-  }
-  map.insertBefore(fragment, afterOffersBlock);
-  // pinsMap.insertAdjacentElement('afterend', fragment);
-};
 
-renderOffers();
+// Отображение блока карты
+document.querySelector('.map').classList.remove('map--faded');
+
+// Отрисовка меток
+renderPins();
+
+// Создание и отрисовка предложения
+var offerElement = renderOffer(allOffers[0]);
+mapElement.insertBefore(offerElement, afterOffersElement);
