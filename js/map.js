@@ -199,12 +199,35 @@ var renderOffer = function (arrayObject) {
 };
 
 
-// Отображение блока карты
-document.querySelector('.map').classList.remove('map--faded');
-
-// Отрисовка меток
-renderPins();
+// // Отображение блока карты
+// document.querySelector('.map').classList.remove('map--faded');
+//
+// // Отрисовка меток
+// renderPins();
 
 // Создание и отрисовка предложения
 var offerElement = renderOffer(allOffers[0]);
 mapElement.insertBefore(offerElement, afterOffersElement);
+
+
+
+
+var formElement = document.querySelector('.notice__form');
+var formFieldsetElements = formElement.querySelectorAll('fieldset');
+var mapMainPin = mapElement.querySelector('.map__pin--main');
+
+
+var toggleFieldsetDisable = function () {
+  for (var i = 0; i <= formFieldsetElements.length; i++) {
+    formFieldsetElements[i].disabled = !formFieldsetElements[i].disabled;
+  };
+};
+toggleFieldsetDisable();
+
+
+mapMainPin.addEventListener('mouseup', function () {
+  toggleFieldsetDisable();
+  mapElement.classList.remove('map--faded');
+  formElement.classList.remove('notice__form--disabled');
+  renderPins();
+});
