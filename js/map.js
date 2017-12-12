@@ -144,12 +144,14 @@ var getAllOffers = function () {
 // Массив случайных предложений
 var allOffers = getAllOffers();
 
+
 // Функция создания отдельного элемента метки
-var renderPin = function (offer) {
+var renderPin = function (offer, i) {
   var pinElement = pinTemplateElement.cloneNode(true);
 
   pinElement.style = 'left: ' + (offer.location.x - PIN_SHIFT_X) + 'px; top: ' + (offer.location.y - PIN_SHIFT_Y) + 'px;';
   pinElement.querySelector('img').src = offer.author.avatar;
+  pinElement.dataset.arrayIndex = i;
 
   return pinElement;
 };
@@ -158,7 +160,7 @@ var renderPin = function (offer) {
 var renderPins = function () {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < allOffers.length; i++) {
-    fragment.appendChild(renderPin(allOffers[i]));
+    fragment.appendChild(renderPin(allOffers[i], i));
   }
   pinsMapElement.appendChild(fragment);
 };
@@ -198,16 +200,10 @@ var renderOffer = function (arrayObject) {
   return offerElement;
 };
 
-
-// // Отображение блока карты
-// document.querySelector('.map').classList.remove('map--faded');
-//
-// // Отрисовка меток
-// renderPins();
-
 // Создание и отрисовка предложения
-var offerElement = renderOffer(allOffers[0]);
-mapElement.insertBefore(offerElement, afterOffersElement);
+// var offerElement = renderOffer(allOffers[0]);
+// mapElement.insertBefore(offerElement, afterOffersElement);
+
 
 
 
@@ -216,18 +212,53 @@ var formElement = document.querySelector('.notice__form');
 var formFieldsetElements = formElement.querySelectorAll('fieldset');
 var mapMainPin = mapElement.querySelector('.map__pin--main');
 
-
+// Первоначальное отключение/Включение полей формы
 var toggleFieldsetDisable = function () {
-  for (var i = 0; i <= formFieldsetElements.length; i++) {
+  for (var i = 0; i < formFieldsetElements.length; i++) {
     formFieldsetElements[i].disabled = !formFieldsetElements[i].disabled;
   };
 };
 toggleFieldsetDisable();
 
-
-mapMainPin.addEventListener('mouseup', function () {
-  toggleFieldsetDisable();
+// Активация страницы при перетаскивании главной метки
+mapMainPin.addEventListener('click', function () { //!!!!!!! mouseup
   mapElement.classList.remove('map--faded');
   formElement.classList.remove('notice__form--disabled');
   renderPins();
+  toggleFieldsetDisable();
 });
+
+// Открытие карточки предложения при нажатии на метку
+pinsMapElement.addEventListener('click', function (evt) {
+  var target = evt.target;
+  var activePinElement = pinsMapElement.querySelector('.map__pin--active');
+  var renderedOfferElement = mapElement.querySelector('.popup');
+
+  if (target.className === 'map__pin' && target.className !== 'map__pin--main') {
+
+    // Подсветка (новой) метки
+    if (activePinElement) {
+      activePinElement.classList.remove('map__pin--active');
+    };
+    target.classList.add('map__pin--active');
+
+    // Отрисовка (новой) карточки обьявления
+    var offerElement = renderOffer(allOffers[target.dataset.arrayIndex]);
+    if (renderedOfferElement) {
+        mapElement.replaceChild(offerElement, renderedOfferElement);
+    } else {
+    mapElement.insertBefore(offerElement, afterOffersElement);
+    };
+
+  // Закрытие карточки обьявления по клику
+    var offerCloseElement = offerElement.querySelector('.popup__close');
+    offerCloseElement.addEventListener('click', function() {
+      mapElement.removeChild(offerElement);
+      activePinElement.classList.remove('map__pin--active');
+    });
+
+  };
+
+
+
+})
