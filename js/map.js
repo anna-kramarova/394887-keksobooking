@@ -1,6 +1,7 @@
 'use strict';
 
 // Константы
+var KEYCODE_ESC = 27;
 var OFFER_TITLES = ['Большая уютная квартира', 'Маленькая неуютная квартира', 'Огромный прекрасный дворец', 'Маленький ужасный дворец', 'Красивый гостевой домик', 'Некрасивый негостеприимный домик', 'Уютное бунгало далеко от моря', 'Неуютное бунгало по колено в воде'];
 // var OFFER_TYPES = ['flat', 'house', 'bungalo'];
 var OFFER_CHECK = ['12:00', '13:00', '14:00'];
@@ -31,6 +32,9 @@ var OFFER_TYPE_TRANSLATION = {
   bungalo: 'Бунгало',
   house: 'Дом'
 };
+
+
+// СОЗДАНИЕ МЕТОК И МАССИВА ПРЕДЛОЖЕНИЙ
 
 // Общий блок карты
 var mapElement = document.querySelector('.map');
@@ -200,13 +204,7 @@ var renderOffer = function (arrayObject) {
   return offerElement;
 };
 
-// Создание и отрисовка предложения
-// var offerElement = renderOffer(allOffers[0]);
-// mapElement.insertBefore(offerElement, afterOffersElement);
-
-
-
-
+// РАБОТА МЕТОК
 
 var formElement = document.querySelector('.notice__form');
 var formFieldsetElements = formElement.querySelectorAll('fieldset');
@@ -216,12 +214,12 @@ var mapMainPin = mapElement.querySelector('.map__pin--main');
 var toggleFieldsetDisable = function () {
   for (var i = 0; i < formFieldsetElements.length; i++) {
     formFieldsetElements[i].disabled = !formFieldsetElements[i].disabled;
-  };
+  }
 };
 toggleFieldsetDisable();
 
 // Активация страницы при перетаскивании главной метки
-mapMainPin.addEventListener('click', function () { //!!!!!!! mouseup
+mapMainPin.addEventListener('click', function () { // !!! 'mouseup'
   mapElement.classList.remove('map--faded');
   formElement.classList.remove('notice__form--disabled');
   renderPins();
@@ -234,31 +232,40 @@ pinsMapElement.addEventListener('click', function (evt) {
   var activePinElement = pinsMapElement.querySelector('.map__pin--active');
   var renderedOfferElement = mapElement.querySelector('.popup');
 
-  if (target.className === 'map__pin' && target.className !== 'map__pin--main') {
+  while (target !== pinsMapElement) {
+    if (target.className === 'map__pin' && target.className !== 'map__pin--main') {
 
-    // Подсветка (новой) метки
-    if (activePinElement) {
-      activePinElement.classList.remove('map__pin--active');
-    };
-    target.classList.add('map__pin--active');
+      // Подсветка (новой) метки
+      if (activePinElement) {
+        activePinElement.classList.remove('map__pin--active');
+      }
+      activePinElement = target;
+      activePinElement.classList.add('map__pin--active');
 
-    // Отрисовка (новой) карточки обьявления
-    var offerElement = renderOffer(allOffers[target.dataset.arrayIndex]);
-    if (renderedOfferElement) {
+      // Отрисовка (новой) карточки обьявления
+      var offerElement = renderOffer(allOffers[target.dataset.arrayIndex]);
+      if (renderedOfferElement) {
         mapElement.replaceChild(offerElement, renderedOfferElement);
-    } else {
-    mapElement.insertBefore(offerElement, afterOffersElement);
-    };
+      } else {
+        mapElement.insertBefore(offerElement, afterOffersElement);
+      }
 
-  // Закрытие карточки обьявления по клику
-    var offerCloseElement = offerElement.querySelector('.popup__close');
-    offerCloseElement.addEventListener('click', function() {
-      mapElement.removeChild(offerElement);
-      activePinElement.classList.remove('map__pin--active');
-    });
+      // Закрытие карточки обьявления по клику на крестик
+      var offerCloseElement = offerElement.querySelector('.popup__close');
+      offerCloseElement.addEventListener('click', function () {
+        mapElement.removeChild(offerElement);
+        activePinElement.classList.remove('map__pin--active');
+      });
 
-  };
+      // Закрытие карточки обьявления по нажатию на ESC
+      document.addEventListener('keydown', function (evt) {
+        if (evt.keyCode === KEYCODE_ESC) {
+          mapElement.removeChild(offerElement);
+          activePinElement.classList.remove('map__pin--active');
+        }
+      });
 
-
-
-})
+    }
+    target = target.parentNode;
+  }
+});
