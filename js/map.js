@@ -1,6 +1,7 @@
 'use strict';
 
 // Константы
+var KEYCODE_ESC = 27;
 var OFFER_TITLES = ['Большая уютная квартира', 'Маленькая неуютная квартира', 'Огромный прекрасный дворец', 'Маленький ужасный дворец', 'Красивый гостевой домик', 'Некрасивый негостеприимный домик', 'Уютное бунгало далеко от моря', 'Неуютное бунгало по колено в воде'];
 // var OFFER_TYPES = ['flat', 'house', 'bungalo'];
 var OFFER_CHECK = ['12:00', '13:00', '14:00'];
@@ -31,6 +32,9 @@ var OFFER_TYPE_TRANSLATION = {
   bungalo: 'Бунгало',
   house: 'Дом'
 };
+
+
+// СОЗДАНИЕ МЕТОК И МАССИВА ПРЕДЛОЖЕНИЙ
 
 // Общий блок карты
 var mapElement = document.querySelector('.map');
@@ -144,12 +148,14 @@ var getAllOffers = function () {
 // Массив случайных предложений
 var allOffers = getAllOffers();
 
+
 // Функция создания отдельного элемента метки
-var renderPin = function (offer) {
+var renderPin = function (offer, i) {
   var pinElement = pinTemplateElement.cloneNode(true);
 
   pinElement.style = 'left: ' + (offer.location.x - PIN_SHIFT_X) + 'px; top: ' + (offer.location.y - PIN_SHIFT_Y) + 'px;';
   pinElement.querySelector('img').src = offer.author.avatar;
+  pinElement.dataset.arrayIndex = i;
 
   return pinElement;
 };
@@ -158,7 +164,7 @@ var renderPin = function (offer) {
 var renderPins = function () {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < allOffers.length; i++) {
-    fragment.appendChild(renderPin(allOffers[i]));
+    fragment.appendChild(renderPin(allOffers[i], i));
   }
   pinsMapElement.appendChild(fragment);
 };
@@ -198,13 +204,85 @@ var renderOffer = function (arrayObject) {
   return offerElement;
 };
 
+// АКТИВАЦИЯ СТРАНИЦЫ
 
-// Отображение блока карты
-document.querySelector('.map').classList.remove('map--faded');
+var formElement = document.querySelector('.notice__form');
+var formFieldsetElements = formElement.querySelectorAll('fieldset');
+var mapMainPin = mapElement.querySelector('.map__pin--main');
 
-// Отрисовка меток
-renderPins();
+// Первоначальное отключение/Включение полей формы
+var toggleFieldsetDisable = function () {
+  for (var i = 0; i < formFieldsetElements.length; i++) {
+    formFieldsetElements[i].disabled = !formFieldsetElements[i].disabled;
+  }
+};
+toggleFieldsetDisable();
 
-// Создание и отрисовка предложения
-var offerElement = renderOffer(allOffers[0]);
-mapElement.insertBefore(offerElement, afterOffersElement);
+// Активация страницы при перетаскивании главной метки
+mapMainPin.addEventListener('click', function () { // !!! 'mouseup'
+  mapElement.classList.remove('map--faded');
+  formElement.classList.remove('notice__form--disabled');
+  renderPins();
+  toggleFieldsetDisable();
+});
+
+// РАБОТА МЕТОК
+
+var activePinElement;
+
+// Закрытие карточки предложения по Esc
+var onEscPress = function (evt) {
+  if (evt.keyCode === KEYCODE_ESC) {
+    closeOfferElement();
+  }
+};
+
+// Закрытие карточки предложения
+var closeOfferElement = function () {
+  var offerElement = mapElement.querySelector('.popup');
+  mapElement.removeChild(offerElement);
+  removeActivePin();
+  document.removeEventListener('keydown', onEscPress);
+};
+
+// Удаление класса активной метки
+var removeActivePin = function () {
+  if (activePinElement) {
+    activePinElement.classList.remove('map__pin--active');
+  }
+};
+
+// Открытие карточки предложения при нажатии на метку
+pinsMapElement.addEventListener('click', function (evt) {
+  var target = evt.target;
+  var renderedOfferElement = mapElement.querySelector('.popup');
+  activePinElement = pinsMapElement.querySelector('.map__pin--active');
+
+  while (target !== pinsMapElement) {
+    if (target.className === 'map__pin' && target.className !== 'map__pin--main') {
+
+      // Подсветка (новой) метки
+      removeActivePin();
+      activePinElement = target;
+      activePinElement.classList.add('map__pin--active');
+
+      // Отрисовка (новой) карточки обьявления
+      var offerElement = renderOffer(allOffers[target.dataset.arrayIndex]);
+      if (renderedOfferElement) {
+        mapElement.replaceChild(offerElement, renderedOfferElement);
+      } else {
+        mapElement.insertBefore(offerElement, afterOffersElement);
+      }
+
+      // Закрытие карточки обьявления по клику на крестик
+      var offerCloseElement = offerElement.querySelector('.popup__close');
+      offerCloseElement.addEventListener('click', function () {
+        closeOfferElement();
+      });
+
+      // Закрытие карточки обьявления по нажатию на ESC
+      document.addEventListener('keydown', onEscPress);
+    }
+    target = target.parentNode;
+  }
+});
