@@ -97,7 +97,7 @@ var getOfferType = function (offerTitle) {
   return offerType;
 };
 
-// Функция создания случайного предложения и его записи в массив
+// Функция создания случайных предложений и их записи в массив
 var getAllOffers = function () {
   var allOffers = [];
   var randomTitles = getUnicElementsArray(OFFER_TITLES, false);
@@ -107,7 +107,7 @@ var getAllOffers = function () {
     var arrayObject = {};
     var randomLocationX = getRandomInt(PIN_LOCATION_X_MIN, PIN_LOCATION_X_MAX);
     var randomLocationY = getRandomInt(PIN_LOCATION_Y_MIN, PIN_LOCATION_Y_MAX);
-
+    var randomCheckInOut = getRandomFeature(OFFER_CHECK);
     // Случайная картинка
     var randomAvatar = {
       avatar: 'img/avatars/user0' + (i + 1) + '.png'
@@ -121,8 +121,8 @@ var getAllOffers = function () {
       type: getOfferType(randomTitles[i]), // getRandomFeature(OFFER_TYPES),
       rooms: getRandomInt(OFFER_ROOMS_MIN, OFFER_ROOMS_MAX),
       guests: getRandomInt(OFFER_GUESTS_MIN, OFFER_GUESTS_MAX),
-      checkin: getRandomFeature(OFFER_CHECK),
-      checkout: getRandomFeature(OFFER_CHECK),
+      checkin: randomCheckInOut,
+      checkout: randomCheckInOut,
       features: getUnicElementsArray(OFFER_FEATURES, true),
       description: '',
       photos: []
@@ -206,8 +206,8 @@ var renderOffer = function (arrayObject) {
 
 // АКТИВАЦИЯ СТРАНИЦЫ
 
-var formElement = document.querySelector('.notice__form');
-var formFieldsetElements = formElement.querySelectorAll('fieldset');
+var noticeFormElement = document.querySelector('.notice__form');
+var formFieldsetElements = noticeFormElement.querySelectorAll('fieldset');
 var mapMainPin = mapElement.querySelector('.map__pin--main');
 
 // Первоначальное отключение/Включение полей формы
@@ -221,7 +221,7 @@ toggleFieldsetDisable();
 // Активация страницы при перетаскивании главной метки
 mapMainPin.addEventListener('click', function () { // !!! 'mouseup'
   mapElement.classList.remove('map--faded');
-  formElement.classList.remove('notice__form--disabled');
+  noticeFormElement.classList.remove('notice__form--disabled');
   renderPins();
   toggleFieldsetDisable();
 });
@@ -285,4 +285,98 @@ pinsMapElement.addEventListener('click', function (evt) {
     }
     target = target.parentNode;
   }
+});
+
+// РАБОТА ПОЛЕЙ ФОРМЫ
+
+// Синхронизация полей времени въезда и выезда
+var inputOfferTimeinElement = noticeFormElement.querySelector('[name="timein"]');
+var inputOfferTimeoutElement = noticeFormElement.querySelector('[name="timeout"]');
+
+// Функция синхронизации времени въезда и выезда
+var syncInputsTimeinOut = function (evt) {
+  var targetInput = evt.target;
+  if (targetInput === inputOfferTimeinElement) {
+    inputOfferTimeoutElement.value = inputOfferTimeinElement.value;
+  } else {
+    inputOfferTimeinElement.value = inputOfferTimeoutElement.value;
+  }
+};
+
+// При нажатии на время въезда
+inputOfferTimeinElement.addEventListener('change', function (evt) {
+  syncInputsTimeinOut(evt);
+});
+
+// При нажатии на время выезда
+inputOfferTimeoutElement.addEventListener('change', function (evt) {
+  syncInputsTimeinOut(evt);
+});
+
+// Синхронизация полей типа жилья и минимальной цены
+var inputOfferTypeElement = noticeFormElement.querySelector('[name="type"]');
+var inputOfferPriceElement = noticeFormElement.querySelector('[name="price"]');
+
+inputOfferTypeElement.addEventListener('change', function () {
+  if (inputOfferTypeElement.value === 'bungalo') {
+    inputOfferPriceElement.min = '0';
+  } else if (inputOfferTypeElement.value === 'flat') {
+    inputOfferPriceElement.min = '1000';
+  } else if (inputOfferTypeElement.value === 'house') {
+    inputOfferPriceElement.min = '5000';
+  } else {
+    inputOfferPriceElement.min = '10000';
+  }
+});
+
+// Синхронизация полей количества комнат и количества гостей
+var inputOfferRoomsElement = noticeFormElement.querySelector('[name="rooms"]');
+var inputOfferGuestsElement = noticeFormElement.querySelector('[name="capacity"]');
+
+var guestsOptions = inputOfferGuestsElement.options;
+var disabledInputsGuest;
+guestsOptions[3].value = '100';
+
+// Функция подбора количества гостей под количество комнат
+var disableUnsuitedGuestsOptions = function () {
+
+  for (var i = 0; i < guestsOptions.length; i++) {
+
+    // Если введено не "100 комнат", опция "не для гостей" отключается, остальные значения подбираются
+    if (inputOfferRoomsElement.value !== '100') {
+      guestsOptions[3].disabled = true;
+
+      if (+guestsOptions[i].value > +inputOfferRoomsElement.value) {
+        guestsOptions[i].disabled = true;
+      }
+
+    // Если введено "100 комнат", отключает все опции, кроме "не для гостей"
+    } else {
+      if (guestsOptions[i].value !== '100') {
+        guestsOptions[i].disabled = true;
+      }
+    }
+  }
+};
+
+// Функция синхронизации количества полей и максимального количества гостей
+var syncInputsGuestsAndRooms = function () {
+  inputOfferGuestsElement.value = inputOfferRoomsElement.value;
+};
+
+// Изначальная синхронизация полей комнат и гостей
+syncInputsGuestsAndRooms();
+disableUnsuitedGuestsOptions();
+
+// Обработчик при изменении поля количества комнат
+inputOfferRoomsElement.addEventListener('change', function () {
+  disabledInputsGuest = inputOfferGuestsElement.querySelectorAll('[disabled]');
+
+  // Сброс заблокированных значений гостей
+  for (var i = 0; i < disabledInputsGuest.length; i++) {
+    disabledInputsGuest[i].disabled = false;
+  }
+
+  disableUnsuitedGuestsOptions();
+  syncInputsGuestsAndRooms();
 });
