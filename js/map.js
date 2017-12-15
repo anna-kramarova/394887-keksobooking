@@ -204,7 +204,7 @@ var renderOffer = function (arrayObject) {
   return offerElement;
 };
 
-// РАБОТА МЕТОК
+// АКТИВАЦИЯ СТРАНИЦЫ
 
 var formElement = document.querySelector('.notice__form');
 var formFieldsetElements = formElement.querySelectorAll('fieldset');
@@ -226,19 +226,43 @@ mapMainPin.addEventListener('click', function () { // !!! 'mouseup'
   toggleFieldsetDisable();
 });
 
+// РАБОТА МЕТОК
+
+var activePinElement;
+
+// Закрытие карточки предложения по Esc
+var onEscPress = function (evt) {
+  if (evt.keyCode === KEYCODE_ESC) {
+    closeOfferElement();
+  }
+};
+
+// Закрытие карточки предложения
+var closeOfferElement = function () {
+  var offerElement = mapElement.querySelector('.popup');
+  mapElement.removeChild(offerElement);
+  removeActivePin();
+  document.removeEventListener('keydown', onEscPress);
+};
+
+// Удаление класса активной метки
+var removeActivePin = function () {
+  if (activePinElement) {
+    activePinElement.classList.remove('map__pin--active');
+  }
+};
+
 // Открытие карточки предложения при нажатии на метку
 pinsMapElement.addEventListener('click', function (evt) {
   var target = evt.target;
-  var activePinElement = pinsMapElement.querySelector('.map__pin--active');
   var renderedOfferElement = mapElement.querySelector('.popup');
+  activePinElement = pinsMapElement.querySelector('.map__pin--active');
 
   while (target !== pinsMapElement) {
     if (target.className === 'map__pin' && target.className !== 'map__pin--main') {
 
       // Подсветка (новой) метки
-      if (activePinElement) {
-        activePinElement.classList.remove('map__pin--active');
-      }
+      removeActivePin();
       activePinElement = target;
       activePinElement.classList.add('map__pin--active');
 
@@ -253,18 +277,11 @@ pinsMapElement.addEventListener('click', function (evt) {
       // Закрытие карточки обьявления по клику на крестик
       var offerCloseElement = offerElement.querySelector('.popup__close');
       offerCloseElement.addEventListener('click', function () {
-        mapElement.removeChild(offerElement);
-        activePinElement.classList.remove('map__pin--active');
+        closeOfferElement();
       });
 
       // Закрытие карточки обьявления по нажатию на ESC
-      document.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === KEYCODE_ESC) {
-          mapElement.removeChild(offerElement);
-          activePinElement.classList.remove('map__pin--active');
-        }
-      });
-
+      document.addEventListener('keydown', onEscPress);
     }
     target = target.parentNode;
   }
