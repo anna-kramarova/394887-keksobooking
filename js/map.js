@@ -388,7 +388,7 @@ var noticeFormInputElements = noticeFormElement.querySelectorAll('input');
 
 noticeFormElement.addEventListener('submit', function (evt) {
 
-  for (var i = 0; i < noticeFormInputElements; i++) {
+  for (var i = 0; i < noticeFormInputElements.length; i++) {
     var noticeFormInput = noticeFormInputElements[i];
 
     if (noticeFormInput.checkValidity() === false) {
