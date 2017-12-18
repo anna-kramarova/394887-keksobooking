@@ -183,7 +183,7 @@ var getFeaturesList = function (featuresArray) {
   var featuresListElementClass;
 
   for (var i = 0; i < featuresArray.length; i++) {
-    featuresListElementClass = 'features features--' + featuresArray[i];
+    featuresListElementClass = 'feature feature--' + featuresArray[i];
 
     featuresListElement = document.createElement('li');
     featuresListElement.className = featuresListElementClass;
@@ -325,9 +325,17 @@ inputOfferTimeoutElement.addEventListener('change', function (evt) {
 var inputOfferTypeElement = noticeFormElement.querySelector('[name="type"]');
 var inputOfferPriceElement = noticeFormElement.querySelector('[name="price"]');
 
-// Обработчик при изменении поле типа жтлья
-inputOfferTypeElement.addEventListener('change', function (evt) {
-  inputOfferPriceElement.min = OFFER_TYPES_MIN_PRICES[evt.currentTarget.value];
+// Функция синхронизации полей типа жилья и минимальной цены
+var syncInputsTypeAndPrice = function () {
+  inputOfferPriceElement.min = OFFER_TYPES_MIN_PRICES[inputOfferTypeElement.value];
+};
+
+// Изначальная синхронизация полей типа жилья и минимальной цены
+syncInputsTypeAndPrice();
+
+// Обработчик при изменении поле типа жилья
+inputOfferTypeElement.addEventListener('change', function () {
+  syncInputsTypeAndPrice();
 });
 
 
@@ -361,7 +369,7 @@ var disableUnsuitedGuestsOptions = function () {
   }
 };
 
-// Функция синхронизации количества полей и максимального количества гостей
+// Функция синхронизации количества комнат и максимального количества гостей
 var syncInputsGuestsAndRooms = function () {
   inputOfferGuestsElement.value = inputOfferRoomsElement.value;
 };
@@ -384,16 +392,18 @@ inputOfferRoomsElement.addEventListener('change', function () {
 });
 
 // Валидация при отправке формы
+var noticeFormSubmitButtonElement = noticeFormElement.querySelector('.form__submit');
 var noticeFormInputElements = noticeFormElement.querySelectorAll('input');
 
-noticeFormElement.addEventListener('submit', function (evt) {
+noticeFormSubmitButtonElement.addEventListener('click', function (evt) {
 
   for (var i = 0; i < noticeFormInputElements.length; i++) {
     var noticeFormInput = noticeFormInputElements[i];
 
     if (noticeFormInput.checkValidity() === false) {
-      noticeFormInput.style.border = '3px solid red';
+      noticeFormInput.style.border = '1px solid red';
       evt.preventDefault();
     }
   }
+
 });
