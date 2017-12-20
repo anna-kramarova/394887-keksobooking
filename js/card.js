@@ -52,7 +52,7 @@
 
 
   // Функция отрисовки (новой) карточки обьявления
-  var renderOfferElement = function (pinOffer, mapElement) {
+  var renderOfferElement = function (pinOffer, mapElement) { // Тут приходится передавать mapElement
 
     // Существующий элемент карточки обьявления
     var renderedOfferElement = mapElement.querySelector('.popup');
@@ -68,9 +68,37 @@
       mapElement.insertBefore(offerElement, afterOffersElement);
     }
 
-    return offerElement;
+
+    // Обработчик закрытия карточки обьявления по клику на крестик
+    var offerClosingElement = offerElement.querySelector('.popup__close');
+
+    offerClosingElement.addEventListener('click', function () {
+      closeOfferElement();
+    });
+
+    // Обработчик закрытия карточки обьявления по нажатию на ESC
+    document.addEventListener('keydown', onEscPress);
 
   };
+
+
+  // Закрытие карточки обьявления и снятие активной метки
+  var closeOfferElement = function () {
+
+    var offerElement = document.querySelector('.map').querySelector('.popup'); // mapElement.querySelector('.popup'); Здесь пришлось заменить mapElement
+
+    document.querySelector('.map').removeChild(offerElement); // mapElement.removeChild(offerElement);
+
+    window.pin.removeActivePin();
+
+    document.removeEventListener('keydown', onEscPress);
+  };
+
+  // Закрытие карточки предложения по Esc
+  var onEscPress = function (evt) {
+    window.util.isEscEvent(evt, closeOfferElement);
+  };
+
 
   // Запись в глобальную область видимости
   window.card = {

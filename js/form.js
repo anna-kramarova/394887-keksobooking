@@ -99,6 +99,13 @@
   };
 
 
+  // Функция активации формы при активации страницы
+  var enableNoticeForm = function () {
+    noticeFormElement.classList.remove('notice__form--disabled');
+    toggleFieldsetDisable();
+  };
+
+
   // Функция изначальной синхронизации полей формы
   var syncNoticeFormInputs = function () {
 
@@ -163,11 +170,8 @@
   // Запись в глобальную область видимости
   window.form = {
 
-    // Элемент формы для ее активации (в map.js)
-    noticeFormElement: noticeFormElement,
-
-    // Функция отключения/включения полей формы для их активации (в map.js)
-    toggleFieldsetDisable: toggleFieldsetDisable
+    // Функция активации формы при активации страницы (map.js)
+    enableNoticeForm: enableNoticeForm
 
   };
 
