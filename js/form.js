@@ -100,7 +100,7 @@
 
 
   // Функция активации формы при активации страницы
-  var enableNoticeForm = function () {
+  var enable = function () {
     noticeFormElement.classList.remove('notice__form--disabled');
     toggleFieldsetDisable();
   };
@@ -171,7 +171,7 @@
   window.form = {
 
     // Функция активации формы при активации страницы (map.js)
-    enableNoticeForm: enableNoticeForm
+    enable: enable
 
   };
 

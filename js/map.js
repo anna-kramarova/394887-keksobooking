@@ -20,10 +20,10 @@
   // Функция-обработчик активации главной страницы при перетаскивании главной метки
   var onMapMainPinElementMouseup = function () {
     mapElement.classList.remove('map--faded');
-    window.pin.renderPins(allOffers, pinsMapElement);
+    window.pin.renderAll(allOffers, pinsMapElement);
 
     // Функция активации формы
-    window.form.enableNoticeForm();
+    window.form.enable();
 
     mapMainPinElement.removeEventListener('click', onMapMainPinElementMouseup);
   };
@@ -42,11 +42,11 @@
       if (target.className === 'map__pin' && target.className !== 'map__pin--main') {
 
         // Подсветка (новой) метки
-        window.pin.addActivePin(target);
+        window.pin.addActiveClass(target);
 
         // Отрисовка (новой) карточки обьявления
         var pinOffer = allOffers[target.dataset.arrayIndex];
-        window.card.renderOfferElement(pinOffer, mapElement);
+        window.card.renderOfferElement(pinOffer);
 
       }
       target = target.parentNode;

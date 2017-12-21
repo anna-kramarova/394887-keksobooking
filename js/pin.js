@@ -23,7 +23,7 @@
   };
 
   // Функция создания, записи элементов меток и вставки фрагмента
-  var renderPins = function (allOffers, pinsMapElement) {
+  var renderAll = function (allOffers, pinsMapElement) {
     var fragment = document.createDocumentFragment();
     for (var i = 0; i < allOffers.length; i++) {
       fragment.appendChild(renderPin(allOffers[i], i));
@@ -34,14 +34,14 @@
   var activePinElement = document.querySelector('.map__pin--active');
 
   // Функция добавления класса активной метки
-  var addActivePin = function (target) {
-    removeActivePin();
+  var addActiveClass = function (target) {
+    removeActiveClass();
     activePinElement = target;
     activePinElement.classList.add('map__pin--active');
   };
 
   // Функция удаления класса активной метки
-  var removeActivePin = function () {
+  var removeActiveClass = function () {
     if (activePinElement) {
       activePinElement.classList.remove('map__pin--active');
     }
@@ -51,13 +51,13 @@
   window.pin = {
 
     // Функция записи во фрагмент элементов меток и вставки фрагмента при активации страницы (map.js)
-    renderPins: renderPins,
+    renderAll: renderAll,
 
     // Функция добавления класса активной метки для обработчика нажатия на другую метку (map.js)
-    addActivePin: addActivePin,
+    addActiveClass: addActiveClass,
 
     // Функция удаления класса активной метки при закрытии карточки (card.js)
-    removeActivePin: removeActivePin
+    removeActiveClass: removeActiveClass
 
   };
 

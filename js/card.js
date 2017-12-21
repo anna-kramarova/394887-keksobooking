@@ -50,9 +50,11 @@
     return offerElement;
   };
 
+  // Общий блок карты
+  var mapElement = document.querySelector('.map');
 
   // Функция отрисовки (новой) карточки обьявления
-  var renderOfferElement = function (pinOffer, mapElement) { // Тут приходится передавать mapElement
+  var renderOfferElement = function (pinOffer) {
 
     // Существующий элемент карточки обьявления
     var renderedOfferElement = mapElement.querySelector('.popup');
@@ -85,11 +87,11 @@
   // Закрытие карточки обьявления и снятие активной метки
   var closeOfferElement = function () {
 
-    var offerElement = document.querySelector('.map').querySelector('.popup'); // mapElement.querySelector('.popup'); Здесь пришлось заменить mapElement
+    var offerElement = mapElement.querySelector('.popup');
 
-    document.querySelector('.map').removeChild(offerElement); // mapElement.removeChild(offerElement);
+    mapElement.removeChild(offerElement);
 
-    window.pin.removeActivePin();
+    window.pin.removeActiveClass();
 
     document.removeEventListener('keydown', onEscPress);
   };
